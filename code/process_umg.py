@@ -14,7 +14,7 @@ def make_ds_plot(umg_data, pgm):
     ds = {}
     ds_sol = {}
     ds_sol_err = {}
-    for lab, spec in [('Unitary', 'wims69_ones_{}_iso4'.format(pgm)),
+    for lab, spec in [('Unity', 'wims69_ones_{}_iso4'.format(pgm)),
                       ('Same $\Phi$', 'wims69_on_{}_iso4'.format(pgm)),
                       ('High $\Phi$', 'wims69_hi_{}_iso4'.format(pgm)),
                       ('Low $\Phi$', 'wims69_low_{}_iso4'.format(pgm))]:

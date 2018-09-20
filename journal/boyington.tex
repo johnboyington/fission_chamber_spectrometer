@@ -509,7 +509,8 @@ The deconvolution algorithms MAXED and Gravel are two approaches presented in th
 
 Spectral deconvolution, also known as spectral unfolding, is a problem commonly found within neutron spectrometry.
 It arises in part by the desire to produces a high resolution representation of the neutron flux spectrum featuring useful detail in special regions.
-The equation governing the process, when represented as a summation, is expressed as follows:
+Consider an $N$-chambered device, each chamber containing a sufficient mass of a given fissionable isotope to produce a measureable signal, deployed in a reactor.
+If our goal is to produce a $g$-group structured representation of the flux spectrum, the system of equations governing the process, when represented as a summation, is expressed as follows:
 
 \begin{equation}
   r_i + \epsilon_i = \sum_{g=1}^{N} \Sigma_{fg,i}  \phi_g\, , 
@@ -562,6 +563,45 @@ $J$ represents the current iteration, $i$ is the energy group index, and $k$ is 
 Because there is no closed form solution to the algorithm, uncertainty propagation is not possible here \cite{reginatto2004umg}.
 
 
+If we further allow the assumption that $\epsilon_i$ is negligible, this allows for the utilization of three other methods.
+One of these is to compute the minimum-norm solution, i.e.,
+
+\begin{equation}
+  \bm{\phi} =  \bm{\Sigma}  [\bm{\Sigma} \bm{\Sigma}^T]^{-1}\mathbf{r} \, ,
+\end{equation}
+
+which yields a spectrum $\bm{\phi}$ having the smallest Euclidean norm $|\bm{\phi}|_2 = \sqrt{\bm{\phi}^T\bm{\phi}}$.
+Although unique, the minimum-norm solution is not guaranteed to be strictly positive.  
+
+
+A second, straightforward inversion technique is Tihkonov regularization \cite{mueller2012lni}, i.e.,
+
+\begin{equation}
+ \bm{\phi} = [\bm{\Sigma}^T \bm{\Sigma}+ \mathbf{T}^T \mathbf{T}]^{-1} \bm{\Sigma} \mathbf{r} \, ,
+\end{equation}
+
+where a common regularization matrix is $\mathbf{T} = a\mathbf{I}$ for a scalar $a$ and identity matrix $\mathbf{I}$.
+Like the minimum-norm solution, the Tikhonov-regularization solution may also contain negative values.
+
+For the work presented here, the primary method used is based on entropy maximization \cite{itoh1989neutron}, in which the (Shannon) entropy of the spectrum is defined as
+
+\begin{equation}
+ S = -\sum^{69}_{g=1} \phi_g \ln \phi_g \, .
+\label{eq:entropy}
+\end{equation}
+
+The flux spectrum with the greatest entropy that satisfies both \EQ{eq:response} and
+
+\begin{equation}
+ \sum^{69}_{g=1} \phi_g = 1
+\label{eq:normalize}
+\end{equation}
+
+is found by solving the nonlinear, constrained optimization problem resulting from (\ref{eq:response})--(\ref{eq:normalize}).
+Equation~\ref{eq:normalize} implies that the integrated flux is known, which may not be the case in practice.
+However, the results below indicate that the unfolding process is not severely sensitive to the assumed, integral flux, meaning that even a crude estimate can be used.
+If the constraint is not employed, the results are much less favorable.
+
 
 \section{Methods}
 
@@ -582,6 +622,14 @@ Three of the default spectra were textbook PWR flux spectra with different magni
 One was scaled to identical integrated flux as the true, TRIGA spectrum, the other two were multiplied by a scaling coefficient of 0.5 or 2.0, representing the theoretical range of mis-guessing the TRIGA's true absolute flux.
 The other, uniquely-shaped spectrum was obtained by setting each bin's integrated flux to unity then scaling the overall flux to match that of the true spectrum.
 The Wims69 group structure was used for this analysis.
+
+\begin{figure}[h!tb]
+  \centering
+  \includegraphics[width = 0.49\textwidth]{../img/fission_cross_sections.pdf}
+  \caption{Microscopic fission cross sections for several nuclides.  All data was pulled directly from NNDC \cite{nndc}.}
+  \label{fig:reactants}
+\end{figure}
+
 
 \begin{figure}[h!tb]
   \centering

@@ -19,6 +19,7 @@ proceeding:
 	bash ./proceeding/makeit
 
 umg:
+	mkdir -p plot
 	python ./code/unfold_umg.py
 	python ./code/process_umg.py
 	bash ./journal/makeit
