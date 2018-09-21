@@ -1,7 +1,7 @@
 import pickle
 import scipy as sp
 from scipy.optimize import fmin_cobyla, minimize
-from master_data import directory
+from master_data import directory, data_path
 
 def integral_response(name):
     response = pickle.load(open(directory+'/code/'+name, 'rb'))
@@ -143,7 +143,25 @@ if __name__ == "__main__" :
     phi_cd =  unfold(R, RF, isos=isos_5, tot=1.0)
     phi_gd =  unfold(R, RF, isos=isos_6, tot=1.0)
     phi_cdgd =  unfold(R, RF, isos=isos_7, tot=1.0)
-    
+
+    # create dictionary of resulsts and pickle
+    results = {}
+    results['wims69_shannon_iso1'] = phi_3
+    results['wims69_shannon_iso2'] = phi_5
+    results['wims69_shannon_iso3'] = phi_11
+    results['wims69_shannon_iso4'] = phi_15
+    results['wims69_low_shannon_iso4'] = phi_15_phi0_5
+    results['wims69_hi_shannon_iso4'] = phi_15_phi2_0
+    results['wims69_min_norm_iso1'] = phi_3_min_norm
+    results['wims69_min_norm_iso4'] = phi_15_min_norm
+    results['wims69_01_tik_iso4'] = phi_15_tik_0_1
+    results['wims69_001_tik_iso4'] = phi_15_tik_1_0
+    results['wims69_shannon_iso5'] = phi_cd
+    results['wims69_shannon_iso6'] = phi_gd
+    results['wims69_shannon_iso7'] = phi_cdgd
+
+    pickle.dump(results, open(data_path + 'unfolded_data.p', 'wb'))
+
     x,yr = plot_multigroup_data(eb, phi_ref, 'group-to-e')
     x,ur = plot_multigroup_data(eb, phi_ref, 'group-to-u')
     x,y3 = plot_multigroup_data(eb, phi_3, 'group-to-e')
