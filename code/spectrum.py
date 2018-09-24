@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
+from scipy.interpolate import interp1d
 
 
 class Spectrum(object):
@@ -12,6 +13,7 @@ class Spectrum(object):
         self.values = values
         self.num_bins, self.num_edges = self.count_bins()
         self.edges = edges
+        self.region = self.edges[0], self.edges[-1]
         self.values = self.scale_values()
         if isinstance(error, bool):
             self.error = self.estimate_error()
@@ -60,10 +62,17 @@ class Spectrum(object):
 
     def functional_form(self, E):
         '''Produce a function from the step data (for use in integration)'''
-        val = 0
-        for i, v in enumerate(self.normalized_values):
-            if E >= self.edges[i] and E < self.edges[i+1]:
-                val = v
+        if type(E) == np.ndarray:
+            val = np.empty(len(E))
+            for j, e in enumerate(E):
+                for i, v in enumerate(self.normalized_values):
+                    if e >= self.edges[i] and e < self.edges[i+1]:
+                        val[j] = v
+        else:
+            val = 0
+            for i, v in enumerate(self.normalized_values):
+                if E >= self.edges[i] and E < self.edges[i+1]:
+                    val = v
         return val
 
     def change_bins(self, bins):
@@ -76,6 +85,38 @@ class Spectrum(object):
             bin_values.append(height)
         Spectrum.__init__(self, bins, bin_values, dfde=True, label=self.label)
         return bin_values
+
+    def findroot(self, percentile, func):
+        l, r = self.region
+        c = np.geomspace(l, r, 3)[1]
+        while abs(func(c) - percentile) > 1e-12:
+            c = np.geomspace(l, r, 3)[1]
+            if percentile < func(c):
+                r = c
+            else:
+                l = c
+        return c
+
+    def e_avg(self):
+        '''Calculates the average x value of the spectrum.'''
+        cumsum = 0
+        values = self.values / self.total_flux
+        for i, val in enumerate(values):
+            if cumsum + val < 0.5:
+                cumsum += val
+            else:
+                x1, x2 = self.edges[i], self.edges[i+1]
+                next_val = values[i]
+                break
+        percent = (0.5 - cumsum) / ((cumsum + next_val) - cumsum)
+        x_avg = (x2 - x1) * percent
+        return x_avg
+
+    def calc_r_tot_ratio(self, cutoff):
+        '''Given a cutoff value, calculates the ratio of the integrated value
+        above that cutoff to the total integrated value of the spectrum.'''
+        top = quad(self.functional_form, cutoff, self.region[1])[0]
+        return top / self.total_flux
 
     def plot(self, perMev=True):
         '''Plot flux data'''

@@ -3,112 +3,106 @@ import scipy as sp
 from scipy.optimize import fmin_cobyla, minimize
 from master_data import directory, data_path
 
+
 def integral_response(name):
     response = pickle.load(open(directory+'/code/'+name, 'rb'))
     phi = response['phi']
-    phi = phi / sum(phi) 
+    phi = phi / sum(phi)
     R = {}
-    for iso in response['response'].keys() :
+    for iso in response['response'].keys():
         R[iso] = phi.dot(response['response'][iso])
     return R
 
-def entropy(v, grad = None) :
-    return -sum(v*sp.log(v)) # - entropy to 
 
-def equal_1(x, R, RF, isos, grad=None) :
+def entropy(v, grad=None):
+    return -sum(v*sp.log(v))  # - entropy to
+
+
+def equal_1(x, R, RF, isos, grad=None):
         delta = sp.zeros(len(isos))
         RR = []
         for i in range(len(isos)):
             iso = isos[i]
             delta[i] = (RF[iso].dot(x) - R[iso])/R[iso]
             RR.append(RF[iso].dot(x))
-        #print delta
-        #for i in range(len(RR)) :
-        #    print '  ....%4i %12.8f, %12.8f, %12.3e, %12.3e    ' \
-        #      % ( i, RR[i], R[data['isos'][i]], RR[i]- R[data['isos'][i]], delta[i])
         return delta
-         
-def unfold(R, RF, isos, tot = 1) :
+
+
+def unfold(R, RF, isos, tot=1):
     """ Unfold the spectrum given the integral responses, response functions,
         total flux, and isotopes to use. """
     objective = lambda x: -entropy(x, None)
     eq1 = {'type': 'eq', 'fun': lambda x: equal_1(x, R, RF, isos)}
     eq2 = {'type': 'eq', 'fun': lambda x: tot-sum(x)}
     phi0 = sp.ones(len(RF['u235']))
-    phi0 = phi0 / sum(phi0) 
+    phi0 = phi0 / sum(phi0)
     bounds = [(1e-13, 1.0)]*len(phi0)
-    y = minimize(objective, phi0, constraints=[eq1, eq2], method='SLSQP', bounds=bounds) 
+    y = minimize(objective, phi0, constraints=[eq1, eq2], method='SLSQP', bounds=bounds)
     print("objective = %12.5e" % y.fun)
-    #print(y)
     return y.x
 
-def unfold_no_norm(R, RF, isos) :
+
+def unfold_no_norm(R, RF, isos):
     """ Unfold the spectrum given the integral responses, response functions,
         and isotopes to use. """
     objective = lambda x: -entropy(x, None)
     eq1 = {'type': 'eq', 'fun': lambda x: equal_1(x, R, RF, isos)}
     phi0 = sp.ones(len(RF['u235']))
-    phi0 = phi0 / sum(phi0) 
+    phi0 = phi0 / sum(phi0)
     bounds = [(1e-13, 1.0)]*len(phi0)
-    y = minimize(objective, phi0, constraints=[eq1], method='SLSQP', bounds=bounds) 
+    y = minimize(objective, phi0, constraints=[eq1], method='SLSQP', bounds=bounds)
     print("objective = %12.5e" % y.fun)
-    #print(y)
     return y.x
 
-def unfold_min_norm(R, RF, isos) :
+
+def unfold_min_norm(R, RF, isos):
     """ Unfold using pseudo-inverse approach."""
     A = sp.zeros((len(isos), len(RF['u235'])))
     b = sp.zeros(len(isos))
     k = 0
-    for iso in isos :
+    for iso in isos:
         A[k, :] = RF[iso]
         b[k] = R[iso]
         k += 1
-    M = A.dot(A.T) 
+    M = A.dot(A.T)
     print(M.shape)
-    #A = RF.dot(RF.transpose())
-    #w = sp.linalg.solve(A, R)
-   # Phi_g = RF.transpose().dot(w) 
     y = sp.linalg.solve(A.dot(A.T), b)
     y = A.T.dot(y)
     return y
 
-def unfold_tikhonov(R, RF, isos, alpha) :
+
+def unfold_tikhonov(R, RF, isos, alpha):
     """ Unfold using tikhonov regularization."""
     A = sp.zeros((len(isos), len(RF['u235'])))
     b = sp.zeros(len(isos))
     k = 0
-    for iso in isos :
+    for iso in isos:
         A[k, :] = RF[iso]
         b[k] = R[iso]
         k += 1
     M = A.T.dot(A) + alpha**2*sp.eye(len(A.T))
     print(M.shape)
-    #A = RF.dot(RF.transpose())
-    #w = sp.linalg.solve(A, R)
-   # Phi_g = RF.transpose().dot(w) 
     y = sp.linalg.solve(M, A.T.dot(b))
-    #y = A.T.dot(y)
     return y
 
-if __name__ == "__main__" :
+
+if __name__ == "__main__":
     from flux_spectrum import Flux
     from master_data import isos, img_directory
     from response import generate_responses
     from multigroup_utilities import energy_groups, plot_multigroup_data
+    from flux import select_flux_spectrum
     import matplotlib.pyplot as plt
     from nice_plots import init_nice_plots
     init_nice_plots()
-    
-    
+
     isos_cd = ['u233cd113', 'u235cd113', 'pu238cd113', 'pu239cd113', 'pu241cd113']
     isos_gd = ['u233gd155', 'u235gd155', 'pu238gd155', 'pu239gd155', 'pu241gd155']
-  
-    
+
     struct = 'wims69'
-    pwr = Flux(7.0, 600.0)
+    phi_triga = select_flux_spectrum('trigaC', 1)[2]
     name = 'test_wims69_resp.p'
-    resp = generate_responses(isos+isos_cd+isos_gd, pwr.evaluate, 
+    resp = generate_responses(isos+isos_cd+isos_gd, phi_triga,
                               struct=struct, name=name, overwrite=True)
     R = integral_response(name)
     RF = resp['response']
@@ -116,19 +110,20 @@ if __name__ == "__main__" :
     phi_ref = resp['phi']
     phi_ref = phi_ref / sum(phi_ref)
     eb = resp['eb']
-    
+
     isos_1 = ['u235', 'u238', 'th232']
     isos_2 = ['u235', 'u238', 'th232', 'np237', 'pu238']
-    isos_3 = ['th232','u233','u234','u235','u238','np237',
-              'pu238','pu239','pu240','pu241','pu242']
+    isos_3 = ['th232', 'u233', 'u234', 'u235', 'u238', 'np237',
+              'pu238', 'pu239', 'pu240', 'pu241', 'pu242']
     isos_4 = isos
-    
 
     isos_5 = isos_3 + isos_cd
     isos_6 = isos_3 + isos_gd
     isos_7 = isos_3 + isos_cd + isos_gd
-    
-    #y3 = unfold(R, RF, isos=['u235','u238','th232'])
+
+    iso_list = [isos_1, isos_2, isos_3, isos_4, isos_5, isos_6, isos_7]
+
+    # y3 = unfold(R, RF, isos=['u235','u238','th232'])
     phi_3 = unfold(R, RF, isos=isos_1)
     phi_5 = unfold(R, RF, isos=isos_2)
     phi_11 = unfold(R, RF, isos=isos_3)
@@ -139,10 +134,10 @@ if __name__ == "__main__" :
     phi_15_min_norm = unfold_min_norm(R, RF, isos=isos_4)
     phi_15_tik_0_1 = unfold_tikhonov(R, RF, isos=isos_4, alpha=0.1)
     phi_15_tik_1_0 = unfold_tikhonov(R, RF, isos=isos_4, alpha=0.01)
-    
-    phi_cd =  unfold(R, RF, isos=isos_5, tot=1.0)
-    phi_gd =  unfold(R, RF, isos=isos_6, tot=1.0)
-    phi_cdgd =  unfold(R, RF, isos=isos_7, tot=1.0)
+
+    phi_cd = unfold(R, RF, isos=isos_5, tot=1.0)
+    phi_gd = unfold(R, RF, isos=isos_6, tot=1.0)
+    phi_cdgd = unfold(R, RF, isos=isos_7, tot=1.0)
 
     # create dictionary of resulsts and pickle
     results = {}
@@ -159,6 +154,14 @@ if __name__ == "__main__" :
     results['wims69_shannon_iso5'] = phi_cd
     results['wims69_shannon_iso6'] = phi_gd
     results['wims69_shannon_iso7'] = phi_cdgd
+
+    # include any unfolding that was missed in original analysis
+    for i, iso in enumerate(iso_list):
+        results['wims69_low_shannon_iso{}'.format(i+1)] = unfold(R, RF, isos=iso, tot=0.5)
+        results['wims69_hi_shannon_iso{}'.format(i+1)] = unfold(R, RF, isos=iso, tot=2.0)
+        results['wims69_min_norm_iso{}'.format(i+1)] = unfold_min_norm(R, RF, isos=iso)
+        results['wims69_01_tik_iso{}'.format(i+1)] = unfold_tikhonov(R, RF, isos=iso, alpha=0.1)
+        results['wims69_001_tik_iso{}'.format(i+1)] = unfold_tikhonov(R, RF, isos=iso, alpha=0.01)
 
     pickle.dump(results, open(data_path + 'unfolded_data.p', 'wb'))
 
