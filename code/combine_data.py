@@ -40,62 +40,62 @@ with open(data_path + 'unfolded_data.p', 'rb') as F:
 for key, value in unfolded_data.items():
     spectra[key] = Spectrum(eb, value)
 
-## calculate e_avg discrepency
-#ft_cutoff = 0.1
-#def_e = spectra['def_spec'].e_avg()
-#def_ft = spectra['def_spec'].calc_r_tot_ratio(ft_cutoff)
-#
-#methods = ['shannon', 'hi_shannon', 'low_shannon', '01_tik', '001_tik',
-#           'on_mx', 'on_gr', 'hi_mx', 'hi_gr', 'low_mx', 'low_gr',
-#           'ones_mx', 'ones_gr']
-#e_avg = np.empty((len(methods), 7))
-#ft_avg = np.empty((len(methods), 7))
-#
-#for i, method in enumerate(methods):
-#    for j in range(7):
-#        key = 'wims69_{}_iso{}'.format(method, j+1)
-#        spec_e = spectra[key].e_avg()
-#        spec_ft = spectra[key].calc_r_tot_ratio(ft_cutoff)
-#        e_avg[i, j] = abs(np.log(spec_e / def_e))
-#        ft_avg[i, j] = abs(spec_ft - def_ft) / def_ft
-#        # print(def_e, spec_e)
-#
-#
-## plotting
-#fig = plt.figure(0)
-#ax = fig.add_subplot(111)
-#ax.set_xlabel('Isotope Group')
-#ax.set_ylabel('Method')
-#ax.set_xticks(np.arange(7))
-#ax.set_xticklabels(np.arange(7) + 1)
-#ax.set_yticks(range(len(methods)))
-#ax.set_yticklabels(methods)
-#
-#image = ax.imshow(e_avg)
-#
-#plt.colorbar(image)
-#
-## plotting ft
-#fig = plt.figure(1)
-#ax = fig.add_subplot(111)
-#ax.set_xlabel('Isotope Group')
-#ax.set_ylabel('Method')
-#ax.set_xticks(np.arange(7))
-#ax.set_xticklabels(np.arange(7) + 1)
-#ax.set_yticks(range(len(methods)))
-#ax.set_yticklabels(methods)
-#
-#image = ax.imshow(ft_avg)
-#
-#plt.colorbar(image)
+# calculate e_avg discrepency
+ft_cutoff = 0.1
+def_e = spectra['def_spec'].e_avg()
+def_ft = spectra['def_spec'].calc_r_tot_ratio(ft_cutoff)
 
-# plot it all
-fig = plt.figure(2)
+methods = ['shannon', 'hi_shannon', 'low_shannon', '01_tik', '001_tik',
+           'on_mx', 'on_gr', 'hi_mx', 'hi_gr', 'low_mx', 'low_gr',
+           'ones_mx', 'ones_gr']
+e_avg = np.empty((len(methods), 7))
+ft_avg = np.empty((len(methods), 7))
+
+for i, method in enumerate(methods):
+    for j in range(7):
+        key = 'wims69_{}_iso{}'.format(method, j+1)
+        spec_e = spectra[key].e_avg()
+        spec_ft = spectra[key].calc_r_tot_ratio(ft_cutoff)
+        e_avg[i, j] = abs(np.log(spec_e / def_e))
+        ft_avg[i, j] = abs(spec_ft - def_ft) / def_ft
+        # print(def_e, spec_e)
+
+
+# plotting
+fig = plt.figure(0)
 ax = fig.add_subplot(111)
-ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_xlabel('Isotope Group')
+ax.set_ylabel('Method')
+ax.set_xticks(np.arange(7))
+ax.set_xticklabels(np.arange(7) + 1)
+ax.set_yticks(range(len(methods)))
+ax.set_yticklabels(methods)
 
+image = ax.imshow(e_avg)
 
-for key, value in spectra.items():
-    if 'low_shannon' in key:
-        ax.plot(*value.step)
+plt.colorbar(image)
+
+# plotting ft
+fig = plt.figure(1)
+ax = fig.add_subplot(111)
+ax.set_xlabel('Isotope Group')
+ax.set_ylabel('Method')
+ax.set_xticks(np.arange(7))
+ax.set_xticklabels(np.arange(7) + 1)
+ax.set_yticks(range(len(methods)))
+ax.set_yticklabels(methods)
+
+image = ax.imshow(ft_avg)
+
+plt.colorbar(image)
+
+## plot it all
+#fig = plt.figure(2)
+#ax = fig.add_subplot(111)
+#ax.set_xscale('log')
+#ax.set_yscale('log')
+#
+#
+#for key, value in spectra.items():
+#    if 'low_shannon' in key:
+#        ax.plot(*value.step)
