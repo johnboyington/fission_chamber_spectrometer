@@ -101,9 +101,12 @@ if __name__ == "__main__":
 
     struct = 'wims69'
     phi_triga = select_flux_spectrum('trigaC', 1)[2]
+    # added for testing
+    # flux = Flux(7, 600.0)
+    # phi_triga = flux.evaluate
     name = 'test_wims69_resp.p'
     resp = generate_responses(isos+isos_cd+isos_gd, phi_triga,
-                              struct=struct, norm_flux_to_one=True, name=name, overwrite=True)
+                              struct=struct, name=name, overwrite=True)
     R = integral_response(name)
     RF = resp['response']
 

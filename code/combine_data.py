@@ -5,7 +5,7 @@ from master_data import data_path
 from flux import select_flux_spectrum
 from unfold import integral_response
 from response import generate_responses
-from master_data import isos, img_directory
+from master_data import isos, img_directory, plot_path
 from spectrum import Spectrum
 
 
@@ -20,7 +20,6 @@ for key, val in RF.items():
 phi_ref = resp['phi'][::-1]
 phi_ref = phi_ref / sum(phi_ref)
 eb = resp['eb'][::-1] * 1e-6
-print(eb)
 
 spectra = {}
 spectra['def_spec'] = Spectrum(eb, phi_ref)
@@ -41,7 +40,7 @@ for key, value in unfolded_data.items():
     spectra[key] = Spectrum(eb, value)
 
 # calculate e_avg discrepency
-ft_cutoff = 0.1
+ft_cutoff = 0.5
 def_e = spectra['def_spec'].e_avg()
 def_ft = spectra['def_spec'].calc_r_tot_ratio(ft_cutoff)
 
@@ -57,13 +56,14 @@ for i, method in enumerate(methods):
         spec_e = spectra[key].e_avg()
         spec_ft = spectra[key].calc_r_tot_ratio(ft_cutoff)
         e_avg[i, j] = abs(np.log(spec_e / def_e))
-        ft_avg[i, j] = abs(spec_ft - def_ft) / def_ft
+        ft_avg[i, j] = abs(np.log(spec_ft / def_ft))
         # print(def_e, spec_e)
 
 
 # plotting
 fig = plt.figure(0)
 ax = fig.add_subplot(111)
+ax.set_title(r'$E_{avg}$')
 ax.set_xlabel('Isotope Group')
 ax.set_ylabel('Method')
 ax.set_xticks(np.arange(7))
@@ -72,12 +72,13 @@ ax.set_yticks(range(len(methods)))
 ax.set_yticklabels(methods)
 
 image = ax.imshow(e_avg)
-
 plt.colorbar(image)
+plt.savefig(plot_path + 'e_avg.pdf', dpi=300)
 
 # plotting ft
 fig = plt.figure(1)
 ax = fig.add_subplot(111)
+ax.set_title(r'$\phi_f / \phi_{tot}$')
 ax.set_xlabel('Isotope Group')
 ax.set_ylabel('Method')
 ax.set_xticks(np.arange(7))
@@ -86,16 +87,16 @@ ax.set_yticks(range(len(methods)))
 ax.set_yticklabels(methods)
 
 image = ax.imshow(ft_avg)
-
 plt.colorbar(image)
+plt.savefig(plot_path + 'ft.pdf', dpi=300)
 
-# plot it all
-fig = plt.figure(2)
-ax = fig.add_subplot(111)
-ax.set_xscale('log')
-ax.set_yscale('log')
-
-
-for key, value in spectra.items():
-    if 'shannon' in key:
-        ax.plot(*value.step)
+## plot it all
+#fig = plt.figure(2)
+#ax = fig.add_subplot(111)
+#ax.set_xscale('log')
+#ax.set_yscale('log')
+#
+#
+#for key, value in spectra.items():
+#    if '69_001_tik_iso7' in key or 'wims69_on_mx_iso7' in key:
+#        ax.plot(*value.step)

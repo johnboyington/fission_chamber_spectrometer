@@ -7,8 +7,8 @@ import pickle
 
 from master_data import directory
 
-def generate_responses(isos, flux, struct='wims69', lower=1e-5, upper=2e7, 
-                       norm_flux_to_one=False, name='response.p', overwrite=False) :
+def generate_responses(isos, flux, struct='wims69', lower=1e-5, upper=2e7,
+                       name='response.p', overwrite=False) :
     """This generates response functions for given isotopes,
      a given spectrum, and a desired group structure."""
     if os.path.isfile(name) and not overwrite :
@@ -22,10 +22,6 @@ def generate_responses(isos, flux, struct='wims69', lower=1e-5, upper=2e7,
         x = trapz(flux(E), E)
         print("->",i,eb[i+1], eb[i], x)
         responses['phi'][i] = trapz(flux(E), E)
-
-    # normalize the total phi to one
-    if norm_flux_to_one:
-        responses['phi'] = responses['phi'] / sp.sum(responses['phi'])
 
     interps = get_cross_section_interps(isos)
     responses['response'] = {}

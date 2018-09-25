@@ -108,7 +108,7 @@ class Spectrum(object):
                 x1, x2 = self.edges[i], self.edges[i+1]
                 next_val = values[i]
                 break
-        percent = (0.5 - cumsum) / ((cumsum + next_val) - cumsum)
+        percent = (0.5 - cumsum) / (next_val)
         x_avg = (x2 - x1) * percent
         return x_avg
 
