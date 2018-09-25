@@ -3,7 +3,8 @@ from scipy.interpolate import interp1d
 from master_data import code_path
 
 
-def select_flux_spectrum(flux, power):
+def select_flux_spectrum(flux, power, pdf=False):
+    '''Returns a functional form of the phi(e) for the ksu reactor for different locations.'''
     message = 'Not a valid flux spectrum.'
     assert flux in ['trigaA', 'trigaB', 'trigaC', 'trigaD', 'trigaE', 'trigaF', 'triga_nebp'], message
 

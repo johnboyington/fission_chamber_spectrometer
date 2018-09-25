@@ -89,13 +89,13 @@ image = ax.imshow(ft_avg)
 
 plt.colorbar(image)
 
-## plot it all
-#fig = plt.figure(2)
-#ax = fig.add_subplot(111)
-#ax.set_xscale('log')
-#ax.set_yscale('log')
-#
-#
-#for key, value in spectra.items():
-#    if 'low_shannon' in key:
-#        ax.plot(*value.step)
+# plot it all
+fig = plt.figure(2)
+ax = fig.add_subplot(111)
+ax.set_xscale('log')
+ax.set_yscale('log')
+
+
+for key, value in spectra.items():
+    if 'shannon' in key:
+        ax.plot(*value.step)
